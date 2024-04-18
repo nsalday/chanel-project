@@ -12,7 +12,7 @@ public class Game extends Application {
         root.getChildren().add(player);
 
         Scene scene = new Scene(root, 400, 400);
-        PlayerController playerController = new PlayerController(player, scene); 
+        PlayerController playerController = new PlayerController(player, root, scene); 
 
         primaryStage.setTitle("Galaxy Dash");
         primaryStage.setScene(scene);
