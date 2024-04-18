@@ -1,44 +1,89 @@
-import javafx.application.Application;
-import javafx.scene.Scene;
+import javafx.animation.AnimationTimer;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
-import javafx.stage.Stage;
+import javafx.scene.Scene;
 
-public class PlayerController extends Application {
+public class PlayerController {
     private Rectangle player;
+    private AnimationTimer timer;
+    private boolean upPressed, downPressed, leftPressed, rightPressed;
 
-    @Override
-    public void start(Stage primaryStage) {
-        Pane root = new Pane();
+    public PlayerController(Rectangle player, Scene scene) {
+        this.player = player;
+        setUpKeyHandling(scene);
+        startAnimationTimer();
+    }
 
-        player = new Rectangle(200, 200, 30, 30); 
-
-        root.getChildren().add(player);
-
-        Scene scene = new Scene(root, 400, 400);
-
+    private void setUpKeyHandling(Scene scene) {
         scene.setOnKeyPressed(event -> {
-            double x = player.getX();
-            double y = player.getY();
-
-            if ((event.getCode() == KeyCode.UP) || (event.getCode() == KeyCode.W)) {
-                player.setY(y - 10);
-            } else if ((event.getCode() == KeyCode.DOWN) || (event.getCode() == KeyCode.S)) {
-                player.setY(y + 10);
-            } else if ((event.getCode() == KeyCode.LEFT) || (event.getCode() == KeyCode.A)) {
-                player.setX(x - 10);
-            } else if ((event.getCode() == KeyCode.RIGHT) || (event.getCode() == KeyCode.D)) {
-                player.setX(x + 10);
+            switch (event.getCode()) {
+                case UP:
+                case W:
+                    upPressed = true;
+                    break;
+                case DOWN:
+                case S:
+                    downPressed = true;
+                    break;
+                case LEFT:
+                case A:
+                    leftPressed = true;
+                    break;
+                case RIGHT:
+                case D:
+                    rightPressed = true;
+                    break;
             }
         });
 
-        primaryStage.setScene(scene);
-        primaryStage.setTitle("Simple Player Controller");
-        primaryStage.show();
+        scene.setOnKeyReleased(event -> {
+            switch (event.getCode()) {
+                case UP:
+                case W:
+                    upPressed = false;
+                    break;
+                case DOWN:
+                case S:
+                    downPressed = false;
+                    break;
+                case LEFT:
+                case A:
+                    leftPressed = false;
+                    break;
+                case RIGHT:
+                case D:
+                    rightPressed = false;
+                    break;
+            }
+        });
     }
 
-    public static void main(String[] args) {
-        launch(args);
+    private void startAnimationTimer() {
+        timer = new AnimationTimer() {
+            private long lastUpdate = 0;
+
+            @Override
+            public void handle(long now) {
+                if (now - lastUpdate >= 16_666_667) { // Allows player to run in 60 FPS
+                    updatePlayer();
+                    lastUpdate = now;
+                }
+            }
+        };
+        timer.start();
+    }
+
+    private void updatePlayer() {
+        double dx = 0, dy = 0;
+        if (upPressed) dy -= 5;
+        if (downPressed) dy += 5;
+        if (leftPressed) dx -= 5;
+        if (rightPressed) dx += 5;
+        movePlayer(dx, dy);
+    }
+
+    private void movePlayer(double dx, double dy) {
+        player.setLayoutX(player.getLayoutX() + dx);
+        player.setLayoutY(player.getLayoutY() + dy);
     }
 }
