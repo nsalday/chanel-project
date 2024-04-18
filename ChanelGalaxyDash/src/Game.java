@@ -10,9 +10,11 @@ public class Game extends Application {
     public void start(Stage primaryStage) {
         Pane root = new Pane();
 
-        Rectangle player = new Rectangle(50, 50, 50, 50); 
+        Rectangle player = new Rectangle(50, 50, 50, 50);
 
-        root.getChildren().add(player);
+        PowerUp speedUp = new PowerUp(100, 100, 20, 20, "speed");
+
+        root.getChildren().addAll(player, speedUp);
 
         Scene scene = new Scene(root, 400, 400);
 
