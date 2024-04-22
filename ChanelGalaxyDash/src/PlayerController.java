@@ -1,3 +1,5 @@
+package com.example.chanel;
+
 import javafx.animation.AnimationTimer;
 import javafx.scene.input.KeyCode;
 import javafx.scene.shape.Rectangle;
@@ -12,23 +14,28 @@ import java.util.TimerTask;
 import java.util.Iterator;
 
 public class PlayerController {
+    private Menu menu;
     private Rectangle player;
     private AnimationTimer timer;
-    private Pane gamePane; 
+    private Pane gamePane;
     private List<Bullet> bullets = new ArrayList<>();
-    private boolean upPressed, downPressed, leftPressed, rightPressed, spacePressed;
+    private boolean upPressed, downPressed, leftPressed, rightPressed, spacePressed, gamePaused;
     private boolean canShoot = true;
-    private long lastShotTime = 0; 
+    private long lastShotTime = 0;
     private long shot_delay= 300;
+    private Scene gameScene;
 
-    public PlayerController(Rectangle player, Pane gamePane, Scene scene) {
+    public PlayerController(Rectangle player, Pane gamePane, Scene scene, Menu menu) {
         this.player = player;
         this.gamePane = gamePane;
+        this.menu = menu;
+        this.gameScene = scene;
         setUpKeyHandling(scene);
         startAnimationTimer();
     }
 
     private void setUpKeyHandling(Scene scene) {
+
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
                 case UP: case W:
@@ -45,6 +52,13 @@ public class PlayerController {
                     break;
                 case SPACE:
                     spacePressed = true;
+                    break;
+                case ESCAPE:
+                    if (!gamePaused) {
+                        menu.show();
+                        timer.stop();
+                        gamePaused = true;
+                    }
                     break;
             }
         });
@@ -66,6 +80,13 @@ public class PlayerController {
                 case SPACE:
                     spacePressed = false;
                     break;
+                case ESCAPE:
+                    if (gamePaused) {
+                        menu.hide();
+                        timer.start();
+                        gamePaused = false;
+                    }
+                    break;
             }
         });
     }
@@ -80,7 +101,7 @@ public class PlayerController {
             gamePane.getChildren().add(newBullet.getShape());
             lastShotTime = currentTime;
             canShoot = false;
-            
+
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {
@@ -96,7 +117,7 @@ public class PlayerController {
             public void handle(long now) {
                 updateBullets();
                 updatePlayerPosition();
-                if (spacePressed) {  
+                if (spacePressed) {
                     shoot(player);
                 }
             }
@@ -128,5 +149,14 @@ public class PlayerController {
         if (rightPressed) {
             player.setX(player.getX() + 2);
         }
+    }
+
+    public Scene getGameScene() {
+        return gameScene;
+    }
+
+    public void resumeGame() {
+        timer.start();
+        gamePaused = false;
     }
 }

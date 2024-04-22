@@ -1,3 +1,5 @@
+package com.example.chanel;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -12,15 +14,20 @@ public class Game extends Application {
         root.getChildren().add(player);
 
         Scene scene = new Scene(root, 400, 400);
-        PlayerController playerController = new PlayerController(player, root, scene); 
+        Menu menu = new Menu(primaryStage, scene);
+
+        PlayerController playerController = new PlayerController(player, root, scene, menu);
+
+        menu.setPlayerController(playerController);
 
         primaryStage.setTitle("Galaxy Dash");
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        menu.show();
     }
 
     public static void main(String[] args) {
         launch(args);
     }
 }
-
