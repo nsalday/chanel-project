@@ -185,6 +185,7 @@ public class PlayerController {
                         downPressed = false;
                         leftPressed = false;
                         rightPressed = false;
+                        spacePressed = false;
                         break;
                     }
                 }
