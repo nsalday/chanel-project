@@ -1,5 +1,7 @@
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.layout.Pane;
+
 
 public class PowerUp extends Rectangle {
     private String type;
@@ -15,9 +17,6 @@ public class PowerUp extends Rectangle {
             case "speed":
                 this.setFill(Color.RED);
                 break;
-            case "shield":
-                this.setFill(Color.BLUE);
-                break;
             case "extraLife":
                 this.setFill(Color.GREEN);
                 break;
@@ -31,18 +30,17 @@ public class PowerUp extends Rectangle {
         return type;
     }
 
-    // // You can add methods here to activate the power-up effects
-    // public void activate(Player player) {
-    //     switch (type) {
-    //         case "speed":
-    //             player.increaseSpeed();
-    //             break;
-    //         case "shield":
-    //             player.activateShield();
-    //             break;
-    //         case "extraLife":
-    //             player.gainLife();
-    //             break;
-    //     }
-    // }
+    public void handleCollision(Rectangle player, Pane root) {
+        if (player.getBoundsInParent().intersects(this.getBoundsInParent())) {
+            switch (type) {
+                case "speed":
+                     //
+                    break;
+                case "extraLife":
+                    //
+                    break;
+            }
+            //root.getChildren().remove(this); // Remove the power-up from the scene upon collision
+        }
+    }
 }
