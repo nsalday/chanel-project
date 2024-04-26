@@ -8,18 +8,17 @@ import javafx.scene.layout.Pane;
 import java.util.Random;
 
 public class Obstacle extends Rectangle {
-    private Timeline spawnTimeline;
-    private Pane root;
-    private Random random;
+    private double speed; // Speed of the obstacle's downward movement
 
-    public Obstacle(double x, double y, double width, double height, Pane root) {
+    public Obstacle(double x, double y, double width, double height, double speed) {
         super(x, y, width, height);
-        setFill(Color.GRAY); // Customize obstacle appearance (e.g., color)
-        this.root = root;
-        this.random = new Random();
-        // startSpawning();
+        this.setFill(Color.BLUE);
+        this.speed = speed;
     }
 
+    public void moveDown() {
+        setY(getY() + speed);
+    }
     // private void startSpawning() {
     //     spawnTimeline = new Timeline(
     //             new KeyFrame(Duration.seconds(5), event -> {

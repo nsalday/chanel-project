@@ -50,6 +50,7 @@ public class Game extends Application {
             @Override
             public void handle(long now) {
                 checkCollisions();
+                moveObstacles(); // Move obstacles continuously
             }
         };
         gameLoop.start();
@@ -97,11 +98,43 @@ public class Game extends Application {
 
     private void spawnObstacle() {
         double x = random.nextDouble() * (root.getWidth() - 30);
-        double y = random.nextDouble() * (root.getHeight() - 30);
-
-        Obstacle obstacle = new Obstacle(x, y, 30, 30, root);
+        double speed = 3 + random.nextDouble() * 3; // Random speed between 3 and 6
+        Obstacle obstacle = new Obstacle(x, 0, 30, 30, speed); // Spawn at top (Y = 0)
         root.getChildren().add(obstacle);
     }
+
+    private void moveObstacles() {
+        List<Node> obstaclesToRemove = new ArrayList<>();
+        for (Node node : root.getChildren()) {
+            if (node instanceof Obstacle) {
+                Obstacle obstacle = (Obstacle) node;
+                obstacle.moveDown(); // Move obstacle downwards
+                // Check if obstacle goes below the scene height, then remove
+                if (obstacle.getY() > root.getHeight()) {
+                    obstaclesToRemove.add(obstacle);
+                }
+            }
+        }
+        root.getChildren().removeAll(obstaclesToRemove);
+    }
+
+    // private void checkCollisions() {
+    //     for (Node node : root.getChildren()) {
+    //         if (node instanceof PowerUp) {
+    //             PowerUp powerUp = (PowerUp) node;
+    //             if (player.getBoundsInParent().intersects(powerUp.getBoundsInParent())) {
+    //                 root.getChildren().remove(powerUp);
+    //                 // handleCollision(player, powerUp); // Handle power-up collision
+    //             }
+    //         } else if (node instanceof Obstacle) {
+    //             Obstacle obstacle = (Obstacle) node;
+    //             if (player.getBoundsInParent().intersects(obstacle.getBoundsInParent())) {
+    //                 root.getChildren().remove(obstacle);
+    //                 // handleCollision(player, obstacle); // Handle obstacle collision
+    //             }
+    //         }
+    //     }
+    // }
 
     private void checkCollisions() {
         List<Node> nodesToRemove = new ArrayList<>();
