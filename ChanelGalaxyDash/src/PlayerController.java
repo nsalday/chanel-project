@@ -181,6 +181,10 @@ public class PlayerController {
                     System.out.println(this.health);
                     if(this.health == 0){
                         Platform.runLater(() -> game.gameOver());
+                        upPressed = false;
+                        downPressed = false;
+                        leftPressed = false;
+                        rightPressed = false;
                         break;
                     }
                 }

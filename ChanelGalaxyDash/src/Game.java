@@ -170,7 +170,9 @@ public class Game extends Application {
         if (spawnObstaclesTimer != null) spawnObstaclesTimer.stop();
         if (spawnPowerUpsTimer != null) spawnPowerUpsTimer.stop();
         if (gameLoop != null) gameLoop.stop();
-    
+        
+        root.getChildren().clear();
+
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Game Over");
         alert.setHeaderText("You have died!");
@@ -197,7 +199,6 @@ public class Game extends Application {
         enemyCount = 1;
         enemySpeed = 1;
         
-        root.getChildren().clear();
         root.getChildren().add(player);
     
         startSpawningObstacles();
