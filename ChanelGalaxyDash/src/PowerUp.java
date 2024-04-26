@@ -30,17 +30,17 @@ public class PowerUp extends Rectangle {
         return type;
     }
 
-    public void handleCollision(Rectangle player, Pane root) {
-        if (player.getBoundsInParent().intersects(this.getBoundsInParent())) {
+    public void handleCollision(PlayerController playerController, Pane root) {
+        Rectangle player = playerController.getPlayer();
+        if (player.getBoundsInParent().intersects(player.getBoundsInParent())) {
             switch (type) {
                 case "speed":
-                     //
+                playerController.increaseSpeed();
                     break;
                 case "extraLife":
-                    //
+                    playerController.extraHealth(1);
                     break;
             }
-            //root.getChildren().remove(this); // Remove the power-up from the scene upon collision
         }
     }
 }

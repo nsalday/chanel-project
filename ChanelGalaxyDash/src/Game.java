@@ -1,19 +1,27 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 public class Game extends Application {
     private Pane root;
     private Rectangle player;
     private Random random;
+    private PlayerController playerController;
+    private AnimationTimer spawnObstaclesTimer;
+    private AnimationTimer spawnPowerUpsTimer;
+    private AnimationTimer gameLoop;
+    private int enemyCount = 1;
+    private double enemySpeed = 1;
 
     @Override
     public void start(Stage primaryStage) {
@@ -22,20 +30,9 @@ public class Game extends Application {
         root.getChildren().add(player);
 
         Scene scene = new Scene(root, 400, 400);
-
-        // Handle player movement
-        scene.setOnKeyPressed(event -> {
-            double x = player.getX();
-            double y = player.getY();
-
-            switch (event.getCode()) {
-                case UP, W -> player.setY(Math.max(y - 10, 0)); // Limit movement within bounds
-                case DOWN, S -> player.setY(Math.min(y + 10, root.getHeight() - player.getHeight()));
-                case LEFT, A -> player.setX(Math.max(x - 10, 0));
-                case RIGHT, D -> player.setX(Math.min(x + 10, root.getWidth() - player.getWidth()));
-                default -> {}
-            }
-        });
+        playerController = new PlayerController(player, root, scene, 3, this); 
+        player.setX(180);
+        player.setY(300);
 
         primaryStage.setTitle("Galaxy Dash");
         primaryStage.setScene(scene);
@@ -44,61 +41,70 @@ public class Game extends Application {
         random = new Random();
         startSpawningPowerUps();
         startSpawningObstacles();
+        startGameLoop();
 
-        // Game loop using AnimationTimer
-        AnimationTimer gameLoop = new AnimationTimer() {
+    }
+
+    private void startGameLoop() {
+        gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 checkCollisions();
-                moveObstacles(); // Move obstacles continuously
+                moveObstacles();
             }
         };
         gameLoop.start();
     }
 
     private void startSpawningPowerUps() {
-        // Spawns a power-up every 5 seconds
-        AnimationTimer timer = new AnimationTimer() {
-            private long lastSpawnTime = 0;
-
+        spawnPowerUpsTimer = new AnimationTimer() {
+            private long lastSpawnTime = System.nanoTime();
+    
             @Override
             public void handle(long now) {
-                if (now - lastSpawnTime >= 5_000_000_000L) { // 5 seconds in nanoseconds
+                if (now - lastSpawnTime >= 10_000_000_000L) { // 5 seconds in nanoseconds
                     spawnPowerUp();
                     lastSpawnTime = now;
                 }
             }
         };
-        timer.start();
+        spawnPowerUpsTimer.start();
     }
-
+    
     private void startSpawningObstacles() {
-        // Spawns an obstacle every 3 seconds
-        AnimationTimer timer = new AnimationTimer() {
-            private long lastSpawnTime = 0;
-
+        spawnObstaclesTimer = new AnimationTimer() {
+            private long lastSpawnTime = System.nanoTime();
+            private long lastIncrementTime = System.nanoTime();
+    
             @Override
             public void handle(long now) {
-                if (now - lastSpawnTime >= 3_000_000_000L) { // 3 seconds in nanoseconds
-                    spawnObstacle();
+                if (now - lastSpawnTime >= 1_000_000_000L) { 
+                    for (int i = 0; i < enemyCount; i++) {
+                        spawnObstacle();
+                    }
                     lastSpawnTime = now;
+                }
+                if (now - lastIncrementTime >= 15_000_000_000L) { 
+                    enemyCount++;  // Increase the number of enemies to spawn
+                    enemySpeed = (double) (enemySpeed + 0.8);
+                    lastIncrementTime = now;
                 }
             }
         };
-        timer.start();
+        spawnObstaclesTimer.start();
     }
 
     private void spawnPowerUp() {
         double x = random.nextDouble() * (root.getWidth() - 20);
         double y = random.nextDouble() * (root.getHeight() - 20);
 
-        PowerUp powerUp = new PowerUp(x, y, 20, 20, "speed");
+        PowerUp powerUp = new PowerUp(x, y, 20, 20, Math.random() < 0.5 ? "speed" : "extraLife");
         root.getChildren().add(powerUp);
     }
 
     private void spawnObstacle() {
         double x = random.nextDouble() * (root.getWidth() - 30);
-        double speed = 3 + random.nextDouble() * 3; // Random speed between 3 and 6
+        double speed = random.nextDouble() * enemySpeed;
         Obstacle obstacle = new Obstacle(x, 0, 30, 30, speed); // Spawn at top (Y = 0)
         root.getChildren().add(obstacle);
     }
@@ -143,14 +149,14 @@ public class Game extends Application {
             if (node instanceof PowerUp) {
                 PowerUp powerUp = (PowerUp) node;
                 if (player.getBoundsInParent().intersects(powerUp.getBoundsInParent())) {
-                    powerUp.handleCollision(player, root); // Handle power-up collision
+                    powerUp.handleCollision(playerController, root); // Handle power-up collision
                     nodesToRemove.add(powerUp);
                 }
             } else if (node instanceof Obstacle) {
                 Obstacle obstacle = (Obstacle) node;
                 if (player.getBoundsInParent().intersects(obstacle.getBoundsInParent())) {
 
-                    obstacle.handleCollision(player, root); // Handle obstacle collision (e.g., decrease player health)
+                    playerController.handleCollision(); // Handle obstacle collision (e.g., decrease player health)
                     nodesToRemove.add(obstacle);
                 }
             }
@@ -158,6 +164,45 @@ public class Game extends Application {
 
         // Remove collided nodes
         root.getChildren().removeAll(nodesToRemove);
+    }
+
+    public void gameOver() {
+        if (spawnObstaclesTimer != null) spawnObstaclesTimer.stop();
+        if (spawnPowerUpsTimer != null) spawnPowerUpsTimer.stop();
+        if (gameLoop != null) gameLoop.stop();
+    
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Game Over");
+        alert.setHeaderText("You have died!");
+        alert.setContentText("Do you want to play again or exit?");
+    
+        ButtonType replayButton = new ButtonType("Play Again");
+        ButtonType exitButton = new ButtonType("Exit");
+        alert.getButtonTypes().setAll(replayButton, exitButton);
+    
+        alert.showAndWait().ifPresent(response -> {
+            if (response == replayButton) {
+                resetGame();
+            } else {
+                System.exit(0);
+            }
+        });
+    }
+    
+    private void resetGame() {
+        player.setX(200);
+        player.setY(300);
+        playerController.setHealth(3);
+        
+        enemyCount = 1;
+        enemySpeed = 1;
+        
+        root.getChildren().clear();
+        root.getChildren().add(player);
+    
+        startSpawningObstacles();
+        startSpawningPowerUps();
+        startGameLoop();
     }
 
     public static void main(String[] args) {
