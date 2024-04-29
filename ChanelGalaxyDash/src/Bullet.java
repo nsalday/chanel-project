@@ -1,10 +1,10 @@
 package com.example.chanel;
 
 import javafx.scene.Node;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
 
 class Bullet {
     private Circle bulletShape;
@@ -12,7 +12,8 @@ class Bullet {
 
     public Bullet(double startX, double startY) {
         bulletShape = new Circle(startX, startY, 5);
-        bulletShape.setFill(Color.RED);
+        Image bulletImage = new Image(getClass().getResourceAsStream("/images/bullet2.png"));
+        bulletShape.setFill(new ImagePattern(bulletImage));
     }
 
     public void move() {
