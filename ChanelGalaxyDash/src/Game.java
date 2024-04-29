@@ -1,27 +1,30 @@
 package com.example.chanel;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 public class Game extends Application {
+
     private Pane root;
     private ImageView player;
     private ImageView backgroundImageView1;
@@ -35,10 +38,12 @@ public class Game extends Application {
     private double enemySpeed = 1;
     private double backgroundPosY = 0;
     private Text livesText;
-    private Scene scene;
+    private Stage stage;
 
     @Override
     public void start(Stage primaryStage) {
+        this.stage = primaryStage;
+
         root = new Pane();
         Image playerImage = new Image(getClass().getResourceAsStream("/images/player.png"));
         player = new ImageView(playerImage);
@@ -91,7 +96,7 @@ public class Game extends Application {
             @Override
             public void handle(long now) {
 
-                livesText.setText("Lives: " + playerController.getHealth());
+                livesText.setText("lives: " + playerController.getHealth());
 
             }
         };
@@ -104,11 +109,13 @@ public class Game extends Application {
 
         livesText = new Text();
         livesText.setFill(Color.WHITE);
-        livesText.setFont(Font.font("Arial", FontWeight.BOLD, 16));
-        livesText.setText("Lives: " + playerController.getHealth());
+        InputStream fontStream = getClass().getResourceAsStream("/fonts/Minecraft.ttf");
+        Font livesFont = Font.loadFont(fontStream, 16);
+        livesText.setFont(livesFont);
         livesText.setX(scene.getWidth() - 80);
         livesText.setY(20);
         root.getChildren().add(livesText);
+
 
     }
 
@@ -238,27 +245,61 @@ public class Game extends Application {
         if (spawnPowerUpsTimer != null) spawnPowerUpsTimer.stop();
         if (gameLoop != null) gameLoop.stop();
 
-        root.getChildren().clear();
+        // Create a new stage for the game over dialog
+        Stage gameOverStage = new Stage();
+        gameOverStage.initModality(Modality.APPLICATION_MODAL);
+        gameOverStage.initOwner(stage);
+        gameOverStage.setTitle("Game Over");
 
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Game Over");
-        alert.setHeaderText("You have died!");
-        alert.setContentText("Do you want to play again or exit?");
+        // Create layout for game over dialog
+        VBox gameOverLayout = new VBox(20);
+        gameOverLayout.setAlignment(Pos.CENTER);
+        InputStream imageStream = getClass().getResourceAsStream("/images/title-bg.png");
+        Image backgroundImage = new Image(imageStream);
+        BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
+        gameOverLayout.setBackground(new Background(background));
 
-        ButtonType replayButton = new ButtonType("Play Again");
-        ButtonType exitButton = new ButtonType("Exit");
-        alert.getButtonTypes().setAll(replayButton, exitButton);
+        Text gameOverText = new Text("Game over!\n");
+        gameOverText.setFont(Font.loadFont(getClass().getResourceAsStream("/fonts/Minecraft.ttf"), 40));
+        gameOverText.setFill(Color.RED);
 
-        alert.showAndWait().ifPresent(response -> {
-            if (response == replayButton) {
-                resetGame();
-            } else {
-                    System.exit(0);
-            }
+        Text replayButton = createClickableText("Reset Game", true, () -> {
+            resetGame();
+            gameOverStage.close();
         });
+        Text exitButton = createClickableText("Exit", true, () -> {
+            System.exit(0);
+        });
+
+        gameOverLayout.getChildren().addAll(gameOverText, replayButton, exitButton);
+        Scene gameOverScene = new Scene(gameOverLayout, 400, 400);
+        gameOverStage.setScene(gameOverScene);
+        gameOverStage.showAndWait();
     }
 
-    private void resetGame() {
+    private Text createClickableText(String text, boolean clickable, Runnable onClick) {
+        Text clickableText = new Text(text);
+        clickableText.setFont(Font.loadFont(getClass().getResourceAsStream("/fonts/Minecraft.ttf"), 18));
+        clickableText.setFill(Color.LIGHTGRAY);
+
+        if (clickable) {
+            clickableText.setOnMouseClicked(e -> onClick.run());
+
+            clickableText.setOnMouseEntered(e -> {
+                clickableText.setFill(Color.WHITE);
+                clickableText.setText("\u25B6 " + text);
+            });
+
+            clickableText.setOnMouseExited(e -> {
+                clickableText.setFill(Color.LIGHTGRAY);
+                clickableText.setText(text);
+            });
+        }
+
+        return clickableText;
+    }
+
+    void resetGame() {
         System.out.println("Resetting game...");
 
         // Reset player position and health
@@ -283,7 +324,7 @@ public class Game extends Application {
             @Override
             public void handle(long now) {
 
-                livesText.setText("Lives: " + playerController.getHealth());
+                livesText.setText("lives: " + playerController.getHealth());
 
             }
         };
@@ -291,8 +332,9 @@ public class Game extends Application {
 
         livesText = new Text();
         livesText.setFill(Color.WHITE);
-        livesText.setFont(Font.font("Arial", FontWeight.BOLD, 16));
-        livesText.setText("Lives: " + playerController.getHealth());
+        InputStream fontStream = getClass().getResourceAsStream("/fonts/Minecraft.ttf");
+        Font livesFont = Font.loadFont(fontStream, 16);
+        livesText.setFont(livesFont);
         livesText.setX(320);
         livesText.setY(20);
         root.getChildren().add(livesText);
