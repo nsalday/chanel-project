@@ -1,7 +1,9 @@
+package com.example.chanel;
+
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -14,84 +16,111 @@ import java.util.TimerTask;
 import java.util.Iterator;
 
 public class PlayerController {
-    private Rectangle player;
+    private Menu menu;
+    private ImageView playerImageView;
     private AnimationTimer timer;
-    private Pane gamePane; 
+    private Pane gamePane;
     private List<Bullet> bullets = new ArrayList<>();
-    private boolean upPressed, downPressed, leftPressed, rightPressed, spacePressed;
+    private boolean upPressed, downPressed, leftPressed, rightPressed, spacePressed, gamePaused;
     private boolean canShoot = true;
-    private long lastShotTime = 0; 
-    private long shot_delay= 300;
+    private long lastShotTime = 0;
+    private long shot_delay = 300;
     private long show_delay_normal = 300;
     private long health;
     private Game game;
-    private double normalSpeed = 2.0; 
-    private double speed = 2.0; 
+    private double normalSpeed = 2.0;
+    private double speed = 2.0;
+    private Scene gameScene;
 
-    public PlayerController(Rectangle player, Pane gamePane, Scene scene, int health, Game game) {
-        this.player = player;
+    public PlayerController(ImageView playerImageView, Pane gamePane, Scene scene, int health, Game game, Menu menu) {
+        this.playerImageView = playerImageView;
         this.gamePane = gamePane;
         this.health = health;
         this.game = game;
-        this.speed = speed;
-        this.shot_delay = shot_delay;
+        this.menu = menu;
+        this.gameScene = scene;
         setUpKeyHandling(scene);
         startAnimationTimer();
+    }
+
+    public long getHealth() {
+        return health;
     }
 
     private void setUpKeyHandling(Scene scene) {
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
-                case UP: case W:
+                case UP:
+                case W:
                     upPressed = true;
                     break;
-                case DOWN: case S:
+                case DOWN:
+                case S:
                     downPressed = true;
                     break;
-                case LEFT: case A:
+                case LEFT:
+                case A:
                     leftPressed = true;
                     break;
-                case RIGHT: case D:
+                case RIGHT:
+                case D:
                     rightPressed = true;
                     break;
                 case SPACE:
                     spacePressed = true;
+                    break;
+                case ESCAPE:
+                    if (!gamePaused) {
+                        menu.show();
+                        gamePaused = true;
+                    }
                     break;
             }
         });
 
         scene.setOnKeyReleased(event -> {
             switch (event.getCode()) {
-                case UP: case W:
+                case UP:
+                case W:
                     upPressed = false;
                     break;
-                case DOWN: case S:
+                case DOWN:
+                case S:
                     downPressed = false;
                     break;
-                case LEFT: case A:
+                case LEFT:
+                case A:
                     leftPressed = false;
                     break;
-                case RIGHT: case D:
+                case RIGHT:
+                case D:
                     rightPressed = false;
                     break;
                 case SPACE:
                     spacePressed = false;
                     break;
+                case ESCAPE:
+                    if (gamePaused) {
+                        menu.hide();
+                        gamePaused = false;
+                        timer.start();
+                    }
+                    break;
             }
         });
     }
 
-    private void shoot(Rectangle shooter) {
+    private void shoot(ImageView shooter) {
         long currentTime = System.currentTimeMillis();
         if (canShoot && (currentTime - lastShotTime >= this.shot_delay)) {
-            double startX = shooter.getX() + shooter.getWidth() / 2;
+            double startX = shooter.getX() + shooter.getBoundsInParent().getWidth() / 2;
             double startY = shooter.getY() - 5;
             Bullet newBullet = new Bullet(startX, startY);
             bullets.add(newBullet);
             gamePane.getChildren().add(newBullet.getShape());
             lastShotTime = currentTime;
             canShoot = false;
-            
+
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {
@@ -107,14 +136,14 @@ public class PlayerController {
             public void handle(long now) {
                 updateBullets();
                 updatePlayerPosition();
-                if (spacePressed) {  
-                    shoot(player);
+                if (spacePressed) {
+                    shoot(playerImageView);
                 }
             }
         };
         timer.start();
     }
-    
+
     private void updateBullets() {
         Iterator<Bullet> iterator = bullets.iterator();
         while (iterator.hasNext()) {
@@ -142,8 +171,8 @@ public class PlayerController {
     }
 
     private void updatePlayerPosition() {
-        double playerNewX = player.getX();
-        double playerNewY = player.getY();
+        double playerNewX = playerImageView.getX();
+        double playerNewY = playerImageView.getY();
 
         if (upPressed) {
             playerNewY -= this.speed;
@@ -157,18 +186,18 @@ public class PlayerController {
         if (rightPressed) {
             playerNewX += this.speed;
         }
-        
+
         // Check boundaries and adjust if necessary
-        double playerMaxX = gamePane.getWidth() - player.getWidth();
-        double playerMaxY = gamePane.getHeight() - player.getHeight();
+        double playerMaxX = gamePane.getWidth() - playerImageView.getBoundsInParent().getWidth();
+        double playerMaxY = gamePane.getHeight() - playerImageView.getBoundsInParent().getHeight();
         if (playerNewX < 0) playerNewX = 0;
         if (playerNewX > playerMaxX) playerNewX = playerMaxX;
         if (playerNewY < 0) playerNewY = 0;
         if (playerNewY > playerMaxY) playerNewY = playerMaxY;
 
         // Set the new position
-        player.setX(playerNewX);
-        player.setY(playerNewY);
+        playerImageView.setX(playerNewX);
+        playerImageView.setY(playerNewY);
     }
 
     public void handleCollision() {
@@ -176,10 +205,10 @@ public class PlayerController {
         for (Node child : gamePane.getChildren()) {
             if (child instanceof Obstacle) {
                 Obstacle obstacle = (Obstacle) child;
-                if (player.getBoundsInParent().intersects(obstacle.getBoundsInParent())) {
+                if (playerImageView.getBoundsInParent().intersects(obstacle.getBoundsInParent())) {
                     this.health--; // Decrease health by one
                     System.out.println(this.health);
-                    if(this.health == 0){
+                    if (this.health == 0) {
                         Platform.runLater(() -> game.gameOver());
                         upPressed = false;
                         downPressed = false;
@@ -201,14 +230,14 @@ public class PlayerController {
         health = health + newHealth;
     }
 
-    public Rectangle getPlayer() {
-        return this.player;
+    public ImageView getPlayerImageView() {
+        return this.playerImageView;
     }
 
     public void increaseSpeed() {
         this.speed *= 1.5; // Increase speed by 50%
         this.shot_delay = 100;
-        
+
         new Timer().schedule(new TimerTask() {
 
             @Override
@@ -216,6 +245,15 @@ public class PlayerController {
                 speed = normalSpeed; // Reset speed to normal after 5 seconds
                 shot_delay = show_delay_normal;
             }
-        },3000); // 5000 milliseconds = 5 seconds
+        }, 3000); // 5000 milliseconds = 5 seconds
+    }
+
+    public Scene getGameScene() {
+        return gameScene;
+    }
+
+    public void resumeGame() {
+        timer.start();
+        gamePaused = false;
     }
 }
