@@ -1,7 +1,13 @@
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.layout.Pane;
+package com.example.chanel;
 
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.shape.Rectangle;
+
+import java.io.InputStream;
 
 public class PowerUp extends Rectangle {
     private String type;
@@ -15,10 +21,10 @@ public class PowerUp extends Rectangle {
     private void initVisuals() {
         switch (type) {
             case "speed":
-                this.setFill(Color.RED);
+                setFillWithImage("/images/speedup.png");
                 break;
             case "extraLife":
-                this.setFill(Color.GREEN);
+                setFillWithImage("/images/heart.png");
                 break;
             default:
                 this.setFill(Color.GRAY);
@@ -26,16 +32,31 @@ public class PowerUp extends Rectangle {
         }
     }
 
+    private void setFillWithImage(String imagePath) {
+        try {
+            InputStream inputStream = getClass().getResourceAsStream(imagePath);
+            if (inputStream != null) {
+                Image image = new Image(inputStream);
+                this.setFill(new ImagePattern(image));
+            } else {
+                System.err.println("Failed to load image: " + imagePath);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
     public String getType() {
         return type;
     }
 
     public void handleCollision(PlayerController playerController, Pane root) {
-        Rectangle player = playerController.getPlayer();
-        if (player.getBoundsInParent().intersects(player.getBoundsInParent())) {
+        ImageView player = playerController.getPlayerImageView();
+        if (player.getBoundsInParent().intersects(this.getBoundsInParent())) {
             switch (type) {
                 case "speed":
-                playerController.increaseSpeed();
+                    playerController.increaseSpeed();
                     break;
                 case "extraLife":
                     playerController.extraHealth(1);

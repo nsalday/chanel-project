@@ -1,3 +1,5 @@
+package com.example.chanel;
+
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -10,11 +12,11 @@ class Bullet {
 
     public Bullet(double startX, double startY) {
         bulletShape = new Circle(startX, startY, 5);
-        bulletShape.setFill(Color.RED); 
+        bulletShape.setFill(Color.RED);
     }
 
     public void move() {
-        bulletShape.setCenterY(bulletShape.getCenterY() - speed); 
+        bulletShape.setCenterY(bulletShape.getCenterY() - speed);
     }
 
     public Circle getShape() {
@@ -22,7 +24,7 @@ class Bullet {
     }
 
     public boolean isOffScreen() {
-        return bulletShape.getCenterY() < 0; 
+        return bulletShape.getCenterY() < 0;
     }
 
     public boolean checkCollision(Pane gamePane) {
