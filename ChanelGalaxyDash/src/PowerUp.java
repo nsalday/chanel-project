@@ -1,4 +1,4 @@
-package com.example.chanel;
+// package com.example.chanel;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -21,10 +21,10 @@ public class PowerUp extends Rectangle {
     private void initVisuals() {
         switch (type) {
             case "speed":
-                setFillWithImage("/images/speedup.png");
+                setFillWithImage("/resources/images/speedup.png");
                 break;
             case "extraLife":
-                setFillWithImage("/images/heart.png");
+                setFillWithImage("/resources/images/heart.png");
                 break;
             default:
                 this.setFill(Color.GRAY);

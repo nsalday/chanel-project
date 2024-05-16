@@ -1,4 +1,4 @@
-package com.example.chanel;
+// package com.example.chanel;
 
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -16,9 +16,9 @@ public class Obstacle extends Rectangle {
     private double speed;
     private static final Random random = new Random();
     private static final String[] obstacleImagePaths = {
-            "/images/obstacle1.png",
-            "/images/obstacle2.png",
-            "/images/obstacle3.png",
+            "/resources/images/obstacle1.png",
+            "/resources/images/obstacle2.png",
+            "/resources/images/obstacle3.png",
     };
 
     public Obstacle(double x, double y, double width, double height, double speed) {

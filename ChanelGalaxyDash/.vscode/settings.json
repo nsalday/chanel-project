@@ -7,13 +7,13 @@
     ],
     "java.project.outputPath": "bin",
     "java.project.referencedLibraries": [
-        "c:\\Java\\javafx-sdk-22\\lib\\javafx.swing.jar",
-        "c:\\Java\\javafx-sdk-22\\lib\\javafx.media.jar",
-        "c:\\Java\\javafx-sdk-22\\lib\\javafx-swt.jar",
-        "c:\\Java\\javafx-sdk-22\\lib\\javafx.fxml.jar",
-        "c:\\Java\\javafx-sdk-22\\lib\\javafx.web.jar",
-        "c:\\Java\\javafx-sdk-22\\lib\\javafx.base.jar",
-        "c:\\Java\\javafx-sdk-22\\lib\\javafx.controls.jar",
-        "c:\\Java\\javafx-sdk-22\\lib\\javafx.graphics.jar"
+        "D:\\Documents\\SDK\\javafx-sdk-22.0.1\\lib\\javafx.swing.jar",
+        "D:\\Documents\\SDK\\javafx-sdk-22.0.1\\lib\\javafx.media.jar",
+        "D:\\Documents\\SDK\\javafx-sdk-22.0.1\\lib\\javafx-swt.jar",
+        "D:\\Documents\\SDK\\javafx-sdk-22.0.1\\lib\\javafx.fxml.jar",
+        "D:\\Documents\\SDK\\javafx-sdk-22.0.1\\lib\\javafx.web.jar",
+        "D:\\Documents\\SDK\\javafx-sdk-22.0.1\\lib\\javafx.base.jar",
+        "D:\\Documents\\SDK\\javafx-sdk-22.0.1\\lib\\javafx.controls.jar",
+        "D:\\Documents\\SDK\\javafx-sdk-22.0.1\\lib\\javafx.graphics.jar"
     ]
 }

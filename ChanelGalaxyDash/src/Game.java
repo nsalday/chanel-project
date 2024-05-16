@@ -1,4 +1,4 @@
-package com.example.chanel;
+// package com.example.chanel;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -45,10 +45,10 @@ public class Game extends Application {
         this.stage = primaryStage;
 
         root = new Pane();
-        Image playerImage = new Image(getClass().getResourceAsStream("/images/player.png"));
+        Image playerImage = new Image(getClass().getResourceAsStream("/resources/images/player.png"));
         player = new ImageView(playerImage);
 
-        Image backgroundImage = new Image(getClass().getResourceAsStream("/images/space_bg9.png"));
+        Image backgroundImage = new Image(getClass().getResourceAsStream("/resources/images/space_bg9.png"));
         backgroundImageView1 = new ImageView(backgroundImage);
         backgroundImageView2 = new ImageView(backgroundImage);
         backgroundImageView1.setFitWidth(400);
@@ -109,7 +109,7 @@ public class Game extends Application {
 
         livesText = new Text();
         livesText.setFill(Color.WHITE);
-        InputStream fontStream = getClass().getResourceAsStream("/fonts/Minecraft.ttf");
+        InputStream fontStream = getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf");
         Font livesFont = Font.loadFont(fontStream, 16);
         livesText.setFont(livesFont);
         livesText.setX(scene.getWidth() - 80);
@@ -254,13 +254,13 @@ public class Game extends Application {
         // Create layout for game over dialog
         VBox gameOverLayout = new VBox(20);
         gameOverLayout.setAlignment(Pos.CENTER);
-        InputStream imageStream = getClass().getResourceAsStream("/images/title-bg.png");
+        InputStream imageStream = getClass().getResourceAsStream("/resources/images/title-bg.png");
         Image backgroundImage = new Image(imageStream);
         BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
         gameOverLayout.setBackground(new Background(background));
 
         Text gameOverText = new Text("Game over!\n");
-        gameOverText.setFont(Font.loadFont(getClass().getResourceAsStream("/fonts/Minecraft.ttf"), 40));
+        gameOverText.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 40));
         gameOverText.setFill(Color.RED);
 
         Text replayButton = createClickableText("Reset Game", true, () -> {
@@ -279,7 +279,7 @@ public class Game extends Application {
 
     private Text createClickableText(String text, boolean clickable, Runnable onClick) {
         Text clickableText = new Text(text);
-        clickableText.setFont(Font.loadFont(getClass().getResourceAsStream("/fonts/Minecraft.ttf"), 18));
+        clickableText.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
         clickableText.setFill(Color.LIGHTGRAY);
 
         if (clickable) {
@@ -332,7 +332,7 @@ public class Game extends Application {
 
         livesText = new Text();
         livesText.setFill(Color.WHITE);
-        InputStream fontStream = getClass().getResourceAsStream("/fonts/Minecraft.ttf");
+        InputStream fontStream = getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf");
         Font livesFont = Font.loadFont(fontStream, 16);
         livesText.setFont(livesFont);
         livesText.setX(320);

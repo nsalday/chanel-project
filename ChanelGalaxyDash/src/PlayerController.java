@@ -1,4 +1,4 @@
-package com.example.chanel;
+// package com.example.chanel;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
