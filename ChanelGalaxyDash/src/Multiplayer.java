@@ -5,17 +5,16 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -30,16 +29,28 @@ public class Multiplayer {
     private boolean isHost = false;
     private Stage primaryStage;
 
+    InputStream imageStream = getClass().getResourceAsStream("/resources/images/title-bg.png");
+    Image backgroundImage = new Image(imageStream);
+    BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
+
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
         VBox layout = new VBox();
         layout.setAlignment(Pos.CENTER);
         layout.setSpacing(20);
-        layout.setBackground(new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY)));
+
+        layout.setBackground(new Background(background));
+
+        DropShadow dropShadow = new DropShadow();
+        dropShadow.setRadius(5);
+        dropShadow.setOffsetX(5);
+        dropShadow.setOffsetY(5);
+        dropShadow.setColor(Color.rgb(173, 31, 44, 1));
 
         Text titleLabel = new Text("Multiplayer");
-        titleLabel.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 36));
-        titleLabel.setFill(Color.WHITE);
+        titleLabel.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Mario-Kart-DS.ttf"), 36));
+        titleLabel.setFill(Color.RED);
+        titleLabel.setEffect(dropShadow);
 
         Text hostText = createClickableText("Host Game", true, this::hostGame);
         hostText.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
@@ -113,22 +124,47 @@ public class Multiplayer {
         }
 
         // Create the lobby layout
-        VBox lobbyLayout = new VBox();
-        lobbyLayout.setAlignment(Pos.TOP_CENTER);
+        VBox lobbyLayout = new VBox(20);
+        lobbyLayout.setAlignment(Pos.CENTER);
         lobbyLayout.setSpacing(20);
+
+        DropShadow dropShadow = new DropShadow();
+        dropShadow.setRadius(5);
+        dropShadow.setOffsetX(5);
+        dropShadow.setOffsetY(5);
+        dropShadow.setColor(Color.rgb(173, 31, 44, 1));
+
         lobbyLayout.setBackground(new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY)));
         lobbyLayout.setPadding(new Insets(10));
 
         Text lobbyTitle = new Text("Lobby");
-        lobbyTitle.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 36));
-        lobbyTitle.setFill(Color.WHITE);
+        lobbyTitle.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Mario-Kart-DS.ttf"), 36));
+        lobbyTitle.setFill(Color.RED);
+        lobbyTitle.setEffect(dropShadow);
 
         // Chat area and input field
         chatArea = new TextArea();
         chatArea.setEditable(false);
-        chatArea.setPrefHeight(100);
+
+        chatArea.setStyle(
+                "-fx-control-inner-background: black;" +
+                        "-fx-background-color: rgba(255, 255, 255, 0.1);" +
+                        "-fx-border-color: white;" +
+                        "-fx-border-width: 2px;"
+        );
+        chatArea.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 12));
+
         chatInputField = new TextField();
         chatInputField.setPromptText("Type a message...");
+        chatInputField.setStyle(
+                "-fx-background-color: rgba(66, 66, 66, 1);" +
+                        "-fx-border-color: white;" +
+                        "-fx-border-width: 2px;" +
+                        "-fx-text-fill: white"
+        );
+
+        chatInputField.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 12));
+
         chatInputField.setOnAction(event -> {
             String text = chatInputField.getText();
             sendMessage(text);
@@ -136,30 +172,30 @@ public class Multiplayer {
             chatInputField.clear();
         });
 
+
         VBox chatBox = new VBox(chatArea, chatInputField);
-        chatBox.setAlignment(Pos.BOTTOM_LEFT);
+        chatBox.setAlignment(Pos.CENTER);
         chatBox.setSpacing(5);
         chatBox.setPrefWidth(300);
-        chatBox.setPrefHeight(150);
+        chatBox.setPrefHeight(200);
 
         HBox bottomLayout = new HBox();
-        bottomLayout.setAlignment(Pos.BOTTOM_LEFT);
+        bottomLayout.setAlignment(Pos.CENTER);
         bottomLayout.getChildren().add(chatBox);
         bottomLayout.setPadding(new Insets(10));
-        
-        VBox mainLayout = new VBox();
-        mainLayout.setAlignment(Pos.TOP_CENTER);
+
+        VBox mainLayout = new VBox(20);
+        mainLayout.setAlignment(Pos.CENTER);
+
         mainLayout.setSpacing(20);
-        mainLayout.setBackground(new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY)));
+        mainLayout.setBackground(new Background(background));
         mainLayout.setPadding(new Insets(10));
         mainLayout.getChildren().addAll(lobbyTitle);
 
         if (isHost) {
-            Button startButton = new Button("Start Game");
-            startButton.setOnAction(e -> {
-                sendMessage("START_GAME");
-                startGame();
-            });
+            Text startButton = createClickableText("Start Game", true, () -> startGame());
+            startButton.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
+            startButton.setFill(Color.LIGHTGRAY);
             mainLayout.getChildren().add(startButton);
         }
         else {
@@ -169,12 +205,12 @@ public class Multiplayer {
             // Display waiting text
             Text waitingText = new Text("Waiting for host to start the game...");
             waitingText.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
-            waitingText.setFill(Color.WHITE);
+            waitingText.setFill(Color.LIGHTGRAY);
             mainLayout.getChildren().add(waitingText);
         }
 
         mainLayout.getChildren().add(bottomLayout);
-        Scene lobbyScene = new Scene(mainLayout, 600, 400);
+        Scene lobbyScene = new Scene(mainLayout, 400, 400);
         primaryStage.setScene(lobbyScene);
         primaryStage.show();
 
@@ -233,4 +269,6 @@ public class Multiplayer {
         }
         System.exit(0);
     }
+
+
 }
