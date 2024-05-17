@@ -193,7 +193,10 @@ public class Multiplayer {
         mainLayout.getChildren().addAll(lobbyTitle);
 
         if (isHost) {
-            Text startButton = createClickableText("Start Game", true, () -> startGame());
+            Text startButton = createClickableText("Start Game", true, () -> {
+                sendMessage("START_GAME");
+                startGame();
+            });
             startButton.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
             startButton.setFill(Color.LIGHTGRAY);
             mainLayout.getChildren().add(startButton);
