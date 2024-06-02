@@ -66,17 +66,19 @@ public class ChatServer {
     }
 
     private void handlePlayerDeath(InetAddress clientAddress, int clientPort) {
+        System.out.print(clients.size());
         clients.remove(new ClientInfo(clientAddress, clientPort));
         System.out.println("Player at " + clientAddress.getHostAddress() + ":" + clientPort + " died. " + clients.size() + " players remaining.");
-        broadcast("A player has died. " + clients.size() + " players remaining.", null, 0);
+        broadcast("A player has died. " + (clients.size() - 1) + " players remaining.", null, 0);
 
-        if (clients.size() == 1) {
+        if (clients.size() == 2) {
             ClientInfo winner = clients.iterator().next();
             System.out.println("Player at " + winner.address.getHostAddress() + ":" + winner.port + " wins!");
             broadcast("Player at " + winner.address.getHostAddress() + ":" + winner.port + " wins!", null, 0);
             try {
                 sendResponse("YOU_WIN", winner.address, winner.port);
             } catch (IOException e) {
+                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             stop();

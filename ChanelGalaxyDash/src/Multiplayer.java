@@ -35,6 +35,15 @@ public class Multiplayer {
     Image backgroundImage = new Image(imageStream);
     BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
 
+    public Multiplayer() {
+        try {
+            clientSocket = new DatagramSocket();
+            serverAddress = InetAddress.getByName("localhost");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
         VBox layout = new VBox();
@@ -71,6 +80,9 @@ public class Multiplayer {
 
         primaryStage.setScene(titleScene);
         primaryStage.show();
+
+        // Start the thread to receive messages
+        new Thread(this::receiveMessages).start();
     }
 
     private Text createClickableText(String text, boolean clickable, Runnable onClick) {
@@ -117,14 +129,6 @@ public class Multiplayer {
     }
 
     private void startLobby() {
-        // Initialize the client socket
-        try {
-            clientSocket = new DatagramSocket();
-            serverAddress = InetAddress.getByName("localhost");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         // Create the lobby layout
         VBox lobbyLayout = new VBox(20);
         lobbyLayout.setAlignment(Pos.CENTER);
@@ -229,9 +233,6 @@ public class Multiplayer {
         Scene lobbyScene = new Scene(mainLayout, 400, 400);
         primaryStage.setScene(lobbyScene);
         primaryStage.show();
-
-        // Start the thread to receive messages
-        new Thread(this::receiveMessages).start();
     }
 
     private void startGame() {
