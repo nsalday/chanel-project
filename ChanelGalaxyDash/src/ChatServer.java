@@ -30,6 +30,11 @@ public class ChatServer {
         public int hashCode() {
             return 31 * address.hashCode() + port;
         }
+
+        @Override
+        public String toString() {
+            return address.getHostAddress() + ":" + port;
+        }
     }
 
     public void start(int port) {
@@ -44,18 +49,22 @@ public class ChatServer {
                 String message = new String(receivePacket.getData(), 0, receivePacket.getLength());
                 System.out.println("Received message: " + message);
 
-                // Register client
                 InetAddress clientAddress = receivePacket.getAddress();
                 int clientPort = receivePacket.getPort();
-                clients.add(new ClientInfo(clientAddress, clientPort));
+                ClientInfo clientInfo = new ClientInfo(clientAddress, clientPort);
+
+                if (!clients.contains(clientInfo)) {
+                    clients.add(clientInfo);
+                    System.out.println("Added client: " + clientInfo);
+                }
 
                 if (message.equals("DIE")) {
-                    handlePlayerDeath(clientAddress, clientPort);
+                    handlePlayerDeath(clientInfo);
                 } else if (message.equals("START_GAME")) {
-                    broadcast("START_GAME", null, 0);  // Broadcast the start game signal to all clients
+                    broadcast("START_GAME", null);  // Broadcast the start game signal to all clients
                 } else {
                     // Broadcast message excluding the sender
-                    broadcast(message, clientAddress, clientPort);
+                    broadcast(message, clientInfo);
                 }
             }
         } catch (IOException e) {
@@ -65,29 +74,25 @@ public class ChatServer {
         }
     }
 
-    private void handlePlayerDeath(InetAddress clientAddress, int clientPort) {
-        System.out.print(clients.size());
-        clients.remove(new ClientInfo(clientAddress, clientPort));
-        System.out.println("Player at " + clientAddress.getHostAddress() + ":" + clientPort + " died. " + clients.size() + " players remaining.");
-        broadcast("A player has died. " + (clients.size() - 1) + " players remaining.", null, 0);
+    private void handlePlayerDeath(ClientInfo clientInfo) {
+        System.out.println("Initial client count: " + (clients.size()-1));
+        boolean removed = clients.remove(clientInfo);
+        System.out.println("Removed client: " + clientInfo + " Success: " + removed);
+        System.out.println("Player " + clientInfo + " died. " + (clients.size()-1) + " players remaining.");
+        broadcast("A player has died. " + (clients.size()-1) + " players remaining.", null);
 
         if (clients.size() == 2) {
             ClientInfo winner = clients.iterator().next();
-            System.out.println("Player at " + winner.address.getHostAddress() + ":" + winner.port + " wins!");
-            broadcast("Player at " + winner.address.getHostAddress() + ":" + winner.port + " wins!", null, 0);
-            try {
-                sendResponse("YOU_WIN", winner.address, winner.port);
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+            System.out.println("Player " + winner + " wins!");
+            broadcast("YOU_WIN", winner);
+            broadcast("GAME_OVER", null);
             stop();
         }
     }
 
-    private void broadcast(String message, InetAddress excludeAddress, int excludePort) {
+    private void broadcast(String message, ClientInfo excludeClient) {
         for (ClientInfo client : clients) {
-            if (excludeAddress == null || !client.address.equals(excludeAddress) || client.port != excludePort) {
+            if (excludeClient == null || !client.equals(excludeClient)) {
                 try {
                     sendResponse(message, client.address, client.port);
                 } catch (IOException e) {

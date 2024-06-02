@@ -182,7 +182,6 @@ public class Multiplayer {
             }
         });
 
-
         VBox chatBox = new VBox(chatArea, chatInputField);
         chatBox.setAlignment(Pos.CENTER);
         chatBox.setSpacing(5);
@@ -268,6 +267,8 @@ public class Multiplayer {
                         startGame();
                     } else if (receivedMessage.equals("YOU_WIN")) {
                         showWinningDialog();
+                    } else if (receivedMessage.equals("GAME_OVER")) {
+                        showGameOverDialog();
                     } else {
                         chatArea.appendText("Server: " + receivedMessage + "\n");
                     }
@@ -283,8 +284,25 @@ public class Multiplayer {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, "You are the last player standing. You win!", ButtonType.OK);
         alert.setHeaderText(null);
         alert.showAndWait();
+        sendMessageToAll("GAME_OVER");
         closeSocket();
-        Platform.exit();
+        Platform.runLater(() -> Platform.exit());
+    }
+
+    private void showGameOverDialog() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "The game is over.", ButtonType.OK);
+        alert.setHeaderText(null);
+        alert.showAndWait();
+        closeSocket();
+        Platform.runLater(() -> Platform.exit());
+    }
+
+    private void sendMessageToAll(String message) {
+        try {
+            sendMessage(message);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void closeSocket() {
@@ -295,6 +313,6 @@ public class Multiplayer {
 
     private void exitGame() {
         closeSocket();
-        System.exit(0);
+        Platform.runLater(() -> Platform.exit());
     }
 }
