@@ -1,5 +1,3 @@
-// package com.example.chanel;
-
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +37,7 @@ public class Game extends Application {
     private double backgroundPosY = 0;
     private Text livesText;
     private Stage stage;
+    private Multiplayer multiplayer;
 
     @Override
     public void start(Stage primaryStage) {
@@ -68,7 +67,8 @@ public class Game extends Application {
 
         menu.setPlayerController(playerController);
 
-        playerController = new PlayerController(player, root, scene, 3, this, menu);
+        multiplayer = new Multiplayer();
+        playerController = new PlayerController(player, root, scene, 3, this, menu, multiplayer);
         player.setX(180);
         player.setY(300);
 
@@ -198,24 +198,6 @@ public class Game extends Application {
         root.getChildren().removeAll(obstaclesToRemove);
     }
 
-    // private void checkCollisions() {
-    //     for (Node node : root.getChildren()) {
-    //         if (node instanceof PowerUp) {
-    //             PowerUp powerUp = (PowerUp) node;
-    //             if (player.getBoundsInParent().intersects(powerUp.getBoundsInParent())) {
-    //                 root.getChildren().remove(powerUp);
-    //                 // handleCollision(player, powerUp); // Handle power-up collision
-    //             }
-    //         } else if (node instanceof Obstacle) {
-    //             Obstacle obstacle = (Obstacle) node;
-    //             if (player.getBoundsInParent().intersects(obstacle.getBoundsInParent())) {
-    //                 root.getChildren().remove(obstacle);
-    //                 // handleCollision(player, obstacle); // Handle obstacle collision
-    //             }
-    //         }
-    //     }
-    // }
-
     private void checkCollisions() {
         List<Node> nodesToRemove = new ArrayList<>();
 
@@ -268,6 +250,7 @@ public class Game extends Application {
             gameOverStage.close();
         });
         Text exitButton = createClickableText("Exit", true, () -> {
+            multiplayer.closeSocket();
             System.exit(0);
         });
 
@@ -344,4 +327,3 @@ public class Game extends Application {
         launch(args);
     }
 }
-

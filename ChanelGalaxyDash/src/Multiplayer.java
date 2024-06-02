@@ -2,7 +2,8 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
@@ -27,6 +28,7 @@ public class Multiplayer {
     private InetAddress serverAddress;
     private int serverPort = 12345;
     private boolean isHost = false;
+    private boolean gameStarted = false;
     private Stage primaryStage;
 
     InputStream imageStream = getClass().getResourceAsStream("/resources/images/title-bg.png");
@@ -167,9 +169,13 @@ public class Multiplayer {
 
         chatInputField.setOnAction(event -> {
             String text = chatInputField.getText();
-            sendMessage(text);
-            chatArea.appendText("You: " + text + "\n");
-            chatInputField.clear();
+            try {
+                sendMessage(text);
+                chatArea.appendText("You: " + text + "\n");
+                chatInputField.clear();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         });
 
 
@@ -194,16 +200,23 @@ public class Multiplayer {
 
         if (isHost) {
             Text startButton = createClickableText("Start Game", true, () -> {
-                sendMessage("START_GAME");
-                startGame();
+                try {
+                    sendMessage("START_GAME");
+                    startGame();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             });
             startButton.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
             startButton.setFill(Color.LIGHTGRAY);
             mainLayout.getChildren().add(startButton);
-        }
-        else {
-            //send message to server that player has joined
-            sendMessage("Player has joined the game");
+        } else {
+            //send message to server that player has joined the game
+            try {
+                sendMessage("Player has joined the game");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             // Display waiting text
             Text waitingText = new Text("Waiting for host to start the game...");
@@ -222,26 +235,22 @@ public class Multiplayer {
     }
 
     private void startGame() {
+        if (gameStarted) return;  // Ensure the game starts only once
+        gameStarted = true;
         Platform.runLater(() -> {
             Game game = new Game();
             Stage gameStage = new Stage();
             game.start(gameStage);
             primaryStage.close();
-
-            // Close the chat client
-            if (clientSocket != null && !clientSocket.isClosed()) {
-                clientSocket.close();
-            }
         });
     }
 
-    private void sendMessage(String message) {
-        try {
+    public void sendMessage(String message) throws IOException {
+        if (clientSocket != null && !clientSocket.isClosed()) {
             byte[] sendData = message.getBytes();
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, serverPort);
             clientSocket.send(sendPacket);
-        } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Sent message: " + message);
         }
     }
 
@@ -252,9 +261,12 @@ public class Multiplayer {
             try {
                 clientSocket.receive(receivePacket);
                 String receivedMessage = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                System.out.println("Received message: " + receivedMessage);
                 Platform.runLater(() -> {
                     if (receivedMessage.equals("START_GAME")) {
                         startGame();
+                    } else if (receivedMessage.equals("YOU_WIN")) {
+                        showWinningDialog();
                     } else {
                         chatArea.appendText("Server: " + receivedMessage + "\n");
                     }
@@ -266,12 +278,22 @@ public class Multiplayer {
         }
     }
 
-    private void exitGame() {
+    private void showWinningDialog() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "You are the last player standing. You win!", ButtonType.OK);
+        alert.setHeaderText(null);
+        alert.showAndWait();
+        closeSocket();
+        Platform.exit();
+    }
+
+    public void closeSocket() {
         if (clientSocket != null && !clientSocket.isClosed()) {
             clientSocket.close();
         }
-        System.exit(0);
     }
 
-
+    private void exitGame() {
+        closeSocket();
+        System.exit(0);
+    }
 }

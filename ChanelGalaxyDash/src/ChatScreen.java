@@ -62,7 +62,7 @@ public class ChatScreen extends Application {
                 javafx.application.Platform.runLater(() ->
                         textArea.appendText("Server: " + receivedMessage + "\n"));
             } catch (IOException e) {
-                System.out.println("Client socket closed.");
+                System.out.println("Chat Client socket closed.");
                 break;
             }
         }

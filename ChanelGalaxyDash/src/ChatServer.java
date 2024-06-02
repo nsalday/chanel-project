@@ -49,17 +49,49 @@ public class ChatServer {
                 int clientPort = receivePacket.getPort();
                 clients.add(new ClientInfo(clientAddress, clientPort));
 
-                // Broadcast message
-                for (ClientInfo client : clients) {
-                    if (!clientAddress.equals(client.address) || clientPort != client.port) {
-                        sendResponse(message, client.address, client.port);
-                    }
+                if (message.equals("DIE")) {
+                    handlePlayerDeath(clientAddress, clientPort);
+                } else if (message.equals("START_GAME")) {
+                    broadcast("START_GAME", null, 0);  // Broadcast the start game signal to all clients
+                } else {
+                    // Broadcast message excluding the sender
+                    broadcast(message, clientAddress, clientPort);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             stop();
+        }
+    }
+
+    private void handlePlayerDeath(InetAddress clientAddress, int clientPort) {
+        clients.remove(new ClientInfo(clientAddress, clientPort));
+        System.out.println("Player at " + clientAddress.getHostAddress() + ":" + clientPort + " died. " + clients.size() + " players remaining.");
+        broadcast("A player has died. " + clients.size() + " players remaining.", null, 0);
+
+        if (clients.size() == 1) {
+            ClientInfo winner = clients.iterator().next();
+            System.out.println("Player at " + winner.address.getHostAddress() + ":" + winner.port + " wins!");
+            broadcast("Player at " + winner.address.getHostAddress() + ":" + winner.port + " wins!", null, 0);
+            try {
+                sendResponse("YOU_WIN", winner.address, winner.port);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            stop();
+        }
+    }
+
+    private void broadcast(String message, InetAddress excludeAddress, int excludePort) {
+        for (ClientInfo client : clients) {
+            if (excludeAddress == null || !client.address.equals(excludeAddress) || client.port != excludePort) {
+                try {
+                    sendResponse(message, client.address, client.port);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -81,4 +113,3 @@ public class ChatServer {
         server.start(12345);
     }
 }
-

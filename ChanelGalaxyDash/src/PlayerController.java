@@ -1,5 +1,3 @@
-// package com.example.chanel;
-
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.scene.image.ImageView;
@@ -14,6 +12,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Iterator;
+import java.io.IOException;
 
 public class PlayerController {
     private Menu menu;
@@ -31,14 +30,16 @@ public class PlayerController {
     private double normalSpeed = 2.0;
     private double speed = 2.0;
     private Scene gameScene;
+    private Multiplayer multiplayer;
 
-    public PlayerController(ImageView playerImageView, Pane gamePane, Scene scene, int health, Game game, Menu menu) {
+    public PlayerController(ImageView playerImageView, Pane gamePane, Scene scene, int health, Game game, Menu menu, Multiplayer multiplayer) {
         this.playerImageView = playerImageView;
         this.gamePane = gamePane;
         this.health = health;
         this.game = game;
         this.menu = menu;
         this.gameScene = scene;
+        this.multiplayer = multiplayer;
         setUpKeyHandling(scene);
         startAnimationTimer();
     }
@@ -207,9 +208,12 @@ public class PlayerController {
                 Obstacle obstacle = (Obstacle) child;
                 if (playerImageView.getBoundsInParent().intersects(obstacle.getBoundsInParent())) {
                     this.health--; // Decrease health by one
-                    System.out.println(this.health);
+                    System.out.println("Player health: " + this.health);
                     if (this.health == 0) {
-                        Platform.runLater(() -> game.gameOver());
+                        Platform.runLater(() -> {
+                            notifyDeath();  // Notify death before game over
+                            game.gameOver();
+                        });
                         upPressed = false;
                         downPressed = false;
                         leftPressed = false;
@@ -219,6 +223,15 @@ public class PlayerController {
                     }
                 }
             }
+        }
+    }
+
+    private void notifyDeath() {
+        try {
+            System.out.println("Sending DIE message to server...");
+            multiplayer.sendMessage("DIE");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -239,13 +252,12 @@ public class PlayerController {
         this.shot_delay = 100;
 
         new Timer().schedule(new TimerTask() {
-
             @Override
             public void run() {
-                speed = normalSpeed; // Reset speed to normal after 5 seconds
+                speed = normalSpeed; // Reset speed to normal after 3 seconds
                 shot_delay = show_delay_normal;
             }
-        }, 3000); // 5000 milliseconds = 5 seconds
+        }, 3000); // 3000 milliseconds = 3 seconds
     }
 
     public Scene getGameScene() {
