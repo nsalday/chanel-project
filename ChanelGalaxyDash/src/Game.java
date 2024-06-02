@@ -1,12 +1,13 @@
-// package com.example.chanel;
-
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -15,7 +16,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -26,97 +26,143 @@ import javafx.scene.image.ImageView;
 public class Game extends Application {
 
     private Pane root;
-    private ImageView player;
+    private List<ImageView> players;
     private ImageView backgroundImageView1;
     private ImageView backgroundImageView2;
     private Random random;
-    private PlayerController playerController;
+    private List<PlayerController> playerControllers;
     private AnimationTimer spawnObstaclesTimer;
     private AnimationTimer spawnPowerUpsTimer;
     private AnimationTimer gameLoop;
     private int enemyCount = 1;
     private double enemySpeed = 1;
     private double backgroundPosY = 0;
-    private Text livesText;
+    private List<Text> livesTexts;
     private Stage stage;
+    private ExecutorService executorService;
+
+    // Networking fields
+    private GameState gameState;
+    private GameClient gameClient;
 
     @Override
     public void start(Stage primaryStage) {
         this.stage = primaryStage;
+        this.executorService = Executors.newCachedThreadPool();
 
         root = new Pane();
-        Image playerImage = new Image(getClass().getResourceAsStream("/resources/images/player.png"));
-        player = new ImageView(playerImage);
+        players = new ArrayList<>();
+        playerControllers = new ArrayList<>();
+        livesTexts = new ArrayList<>();
 
-        Image backgroundImage = new Image(getClass().getResourceAsStream("/resources/images/space_bg9.png"));
+        Image playerImage = new Image(getClass().getResourceAsStream("/player.png"));
+        for (int i = 0; i < 4; i++) {
+            ImageView player = new ImageView(playerImage);
+            players.add(player);
+        }
+
+        Image backgroundImage = new Image(getClass().getResourceAsStream("/space_bg9.png"));
         backgroundImageView1 = new ImageView(backgroundImage);
         backgroundImageView2 = new ImageView(backgroundImage);
-        backgroundImageView1.setFitWidth(400);
-        backgroundImageView1.setFitHeight(400);
-        backgroundImageView2.setFitWidth(400);
-        backgroundImageView2.setFitHeight(400);
+        backgroundImageView1.setFitWidth(800);
+        backgroundImageView1.setFitHeight(800);
+        backgroundImageView2.setFitWidth(800);
+        backgroundImageView2.setFitHeight(800);
+
         root.getChildren().addAll(backgroundImageView1, backgroundImageView2);
+        root.getChildren().addAll(players);
 
-        backgroundImageView2.setTranslateY(-backgroundImageView1.getFitHeight() + backgroundPosY);
-
-        root.getChildren().add(player);
-
-
-        Scene scene = new Scene(root, 400, 400);
+        Scene scene = new Scene(root, 800, 800);
 
         Menu menu = new Menu(primaryStage, scene);
 
-        menu.setPlayerController(playerController);
+        gameState = new GameState(new ArrayList<>());
+        for (int i = 0; i < 4; i++) {
+            gameState.getPlayers().add(new PlayerData(100 + (i * 150), 300, 3));
+            PlayerController playerController = new PlayerController(players.get(i), root, scene, 3, this, menu, null, gameState, i); // Socket will be set by GameClient
+            playerControllers.add(playerController);
+            Text livesText = new Text();
+            livesText.setFill(Color.WHITE);
+            InputStream fontStream = getClass().getResourceAsStream("/Minecraft.ttf");
+            Font livesFont = Font.loadFont(fontStream, 16);
+            livesText.setFont(livesFont);
+            livesText.setX(scene.getWidth() - 80);
+            livesText.setY(20 + (i * 20));
+            livesTexts.add(livesText);
+            root.getChildren().add(livesText);
+        }
 
-        playerController = new PlayerController(player, root, scene, 3, this, menu);
-        player.setX(180);
-        player.setY(300);
+        for (int i = 0; i < players.size(); i++) {
+            ImageView player = players.get(i);
+            player.setX(100 + (i * 150));
+            player.setY(300);
+        }
 
-        primaryStage.setTitle("Galaxy Dash");
+        primaryStage.setTitle("Galaxy Dash Multiplayer");
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        AnimationTimer backgroundAnimation = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
+        // Initialize networking
+        initializeNetworking();
+    }
 
-                backgroundPosY += 1;
-                backgroundImageView1.setTranslateY(backgroundPosY);
-                backgroundImageView2.setTranslateY(-backgroundImageView1.getFitHeight() + backgroundPosY);
+    private void initializeNetworking() {
+        gameClient = new GameClient();
+        gameClient.initialize(players, playerControllers);
+        gameClient.start();
 
-
-                if (backgroundPosY >= backgroundImageView1.getFitHeight()) {
-                    backgroundPosY = 0;
+        // Ensure the game loop starts after the GameClient has connected
+        executorService.execute(() -> {
+            while (gameClient.getSocket() == null) {
+                try {
+                    Thread.sleep(100); // Wait for the GameClient to establish the connection
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
-        };
-        backgroundAnimation.start();
 
-        AnimationTimer gameLoop = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
+            Platform.runLater(() -> {
+                AnimationTimer backgroundAnimation = new AnimationTimer() {
+                    @Override
+                    public void handle(long now) {
+                        backgroundPosY += 1;
+                        backgroundImageView1.setTranslateY(backgroundPosY);
+                        backgroundImageView2.setTranslateY(-backgroundImageView1.getFitHeight() + backgroundPosY);
 
-                livesText.setText("lives: " + playerController.getHealth());
+                        if (backgroundPosY >= backgroundImageView1.getFitHeight()) {
+                            backgroundPosY = 0;
+                        }
+                    }
+                };
+                backgroundAnimation.start();
 
-            }
-        };
-        gameLoop.start();
+                AnimationTimer gameLoop = new AnimationTimer() {
+                    @Override
+                    public void handle(long now) {
+                        for (int i = 0; i < playerControllers.size(); i++) {
+                            livesTexts.get(i).setText("Lives: " + playerControllers.get(i).getHealth());
+                        }
+                    }
+                };
+                gameLoop.start();
 
-        random = new Random();
-        startSpawningPowerUps();
-        startSpawningObstacles();
-        startGameLoop();
+                random = new Random();
+                startSpawningPowerUps();
+                startSpawningObstacles();
+                startGameLoop();
+            });
+        });
+    }
 
-        livesText = new Text();
-        livesText.setFill(Color.WHITE);
-        InputStream fontStream = getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf");
-        Font livesFont = Font.loadFont(fontStream, 16);
-        livesText.setFont(livesFont);
-        livesText.setX(scene.getWidth() - 80);
-        livesText.setY(20);
-        root.getChildren().add(livesText);
-
-
+    private void updateGameState(GameState updatedGameState) {
+        this.gameState = updatedGameState;
+        List<PlayerData> playerDataList = gameState.getPlayers();
+        for (int i = 0; i < playerDataList.size(); i++) {
+            PlayerData playerData = playerDataList.get(i);
+            ImageView playerImageView = players.get(i);
+            playerImageView.setX(playerData.getX());
+            playerImageView.setY(playerData.getY());
+        }
     }
 
     private void startGameLoop() {
@@ -125,9 +171,14 @@ public class Game extends Application {
             public void handle(long now) {
                 checkCollisions();
                 moveObstacles();
+                sendGameStateToServer();
             }
         };
         gameLoop.start();
+    }
+
+    private void sendGameStateToServer() {
+        gameClient.sendGameState(gameState);
     }
 
     private void startSpawningPowerUps() {
@@ -136,7 +187,7 @@ public class Game extends Application {
 
             @Override
             public void handle(long now) {
-                if (now - lastSpawnTime >= 10_000_000_000L) { // 5 seconds in nanoseconds
+                if (now - lastSpawnTime >= 10_000_000_000L) { // 10 seconds in nanoseconds
                     spawnPowerUp();
                     lastSpawnTime = now;
                 }
@@ -198,150 +249,97 @@ public class Game extends Application {
         root.getChildren().removeAll(obstaclesToRemove);
     }
 
-    // private void checkCollisions() {
-    //     for (Node node : root.getChildren()) {
-    //         if (node instanceof PowerUp) {
-    //             PowerUp powerUp = (PowerUp) node;
-    //             if (player.getBoundsInParent().intersects(powerUp.getBoundsInParent())) {
-    //                 root.getChildren().remove(powerUp);
-    //                 // handleCollision(player, powerUp); // Handle power-up collision
-    //             }
-    //         } else if (node instanceof Obstacle) {
-    //             Obstacle obstacle = (Obstacle) node;
-    //             if (player.getBoundsInParent().intersects(obstacle.getBoundsInParent())) {
-    //                 root.getChildren().remove(obstacle);
-    //                 // handleCollision(player, obstacle); // Handle obstacle collision
-    //             }
-    //         }
-    //     }
-    // }
-
     private void checkCollisions() {
         List<Node> nodesToRemove = new ArrayList<>();
 
         for (Node node : root.getChildren()) {
             if (node instanceof PowerUp) {
                 PowerUp powerUp = (PowerUp) node;
-                if (player.getBoundsInParent().intersects(powerUp.getBoundsInParent())) {
-                    powerUp.handleCollision(playerController, root); // Handle power-up collision
-                    nodesToRemove.add(powerUp);
+                for (PlayerController playerController : playerControllers) {
+                    if (players.get(playerControllers.indexOf(playerController)).getBoundsInParent().intersects(powerUp.getBoundsInParent())) {
+                        powerUp.handleCollision(playerController, root); // Handle power-up collision
+                        nodesToRemove.add(powerUp);
+                    }
                 }
             } else if (node instanceof Obstacle) {
                 Obstacle obstacle = (Obstacle) node;
-                if (player.getBoundsInParent().intersects(obstacle.getBoundsInParent())) {
-
-                    playerController.handleCollision(); // Handle obstacle collision (e.g., decrease player health)
-                    nodesToRemove.add(obstacle);
+                for (PlayerController playerController : playerControllers) {
+                    if (players.get(playerControllers.indexOf(playerController)).getBoundsInParent().intersects(obstacle.getBoundsInParent())) {
+                        playerController.handleCollision(); // Handle obstacle collision (e.g., decrease player health)
+                        nodesToRemove.add(obstacle);
+                    }
                 }
             }
         }
 
         // Remove collided nodes
         root.getChildren().removeAll(nodesToRemove);
-    }
 
-    public void gameOver() {
-        if (spawnObstaclesTimer != null) spawnObstaclesTimer.stop();
-        if (spawnPowerUpsTimer != null) spawnPowerUpsTimer.stop();
-        if (gameLoop != null) gameLoop.stop();
-
-        // Create a new stage for the game over dialog
-        Stage gameOverStage = new Stage();
-        gameOverStage.initModality(Modality.APPLICATION_MODAL);
-        gameOverStage.initOwner(stage);
-        gameOverStage.setTitle("Game Over");
-
-        // Create layout for game over dialog
-        VBox gameOverLayout = new VBox(20);
-        gameOverLayout.setAlignment(Pos.CENTER);
-        InputStream imageStream = getClass().getResourceAsStream("/resources/images/title-bg.png");
-        Image backgroundImage = new Image(imageStream);
-        BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
-        gameOverLayout.setBackground(new Background(background));
-
-        Text gameOverText = new Text("Game over!\n");
-        gameOverText.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 40));
-        gameOverText.setFill(Color.RED);
-
-        Text replayButton = createClickableText("Reset Game", true, () -> {
-            resetGame();
-            gameOverStage.close();
-        });
-        Text exitButton = createClickableText("Exit", true, () -> {
-            System.exit(0);
-        });
-
-        gameOverLayout.getChildren().addAll(gameOverText, replayButton, exitButton);
-        Scene gameOverScene = new Scene(gameOverLayout, 400, 400);
-        gameOverStage.setScene(gameOverScene);
-        gameOverStage.showAndWait();
-    }
-
-    private Text createClickableText(String text, boolean clickable, Runnable onClick) {
-        Text clickableText = new Text(text);
-        clickableText.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
-        clickableText.setFill(Color.LIGHTGRAY);
-
-        if (clickable) {
-            clickableText.setOnMouseClicked(e -> onClick.run());
-
-            clickableText.setOnMouseEntered(e -> {
-                clickableText.setFill(Color.WHITE);
-                clickableText.setText("\u25B6 " + text);
-            });
-
-            clickableText.setOnMouseExited(e -> {
-                clickableText.setFill(Color.LIGHTGRAY);
-                clickableText.setText(text);
-            });
+        // Check if any player has lost all lives
+        for (PlayerController playerController : playerControllers) {
+            if (playerController.getHealth() <= 0) {
+                gameOver(playerController);
+            }
         }
+    }
 
-        return clickableText;
+    public void gameOver(PlayerController playerController) {
+        root.getChildren().remove(players.get(playerControllers.indexOf(playerController)));
+        playerControllers.remove(playerController);
+        if (playerControllers.size() == 1) {
+            displayWinningScreen(playerControllers.get(0));
+        }
+    }
+
+    private void displayWinningScreen(PlayerController winner) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Player " + (playerControllers.indexOf(winner) + 1) + " wins!", ButtonType.OK);
+        alert.setTitle("Game Over");
+        alert.setHeaderText("Congratulations!");
+        alert.showAndWait();
+        resetGame();
     }
 
     void resetGame() {
         System.out.println("Resetting game...");
 
-        // Reset player position and health
-        player.setX(200);
-        player.setY(300);
-        playerController.setHealth(3);
+        // Reset player positions and health
+        playerControllers.clear();
+        for (int i = 0; i < players.size(); i++) {
+            ImageView player = players.get(i);
+            player.setX(100 + (i * 150));
+            player.setY(300);
+            PlayerController playerController = new PlayerController(player, root, stage.getScene(), 3, this, new Menu(stage, stage.getScene()), null, gameState, i); // Socket will be set by GameClient
+            playerControllers.add(playerController);
+        }
 
         enemyCount = 1;
         enemySpeed = 1;
 
-        // Clear the root pane and add the player back
+        // Clear the root pane and add the players back
         root.getChildren().clear();
-        root.getChildren().addAll(backgroundImageView1, backgroundImageView2, player);
+        root.getChildren().addAll(backgroundImageView1, backgroundImageView2);
+        root.getChildren().addAll(players);
 
         // Reset other game elements
         startSpawningObstacles();
         startSpawningPowerUps();
         startGameLoop();
 
-        // Create or update lives text
-        AnimationTimer gameLoop = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-
-                livesText.setText("lives: " + playerController.getHealth());
-
-            }
-        };
-        gameLoop.start();
-
-        livesText = new Text();
-        livesText.setFill(Color.WHITE);
-        InputStream fontStream = getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf");
-        Font livesFont = Font.loadFont(fontStream, 16);
-        livesText.setFont(livesFont);
-        livesText.setX(320);
-        livesText.setY(20);
-        root.getChildren().add(livesText);
+        livesTexts.clear();
+        for (int i = 0; i < playerControllers.size(); i++) {
+            Text livesText = new Text();
+            livesText.setFill(Color.WHITE);
+            InputStream fontStream = getClass().getResourceAsStream("/Minecraft.ttf");
+            Font livesFont = Font.loadFont(fontStream, 16);
+            livesText.setFont(livesFont);
+            livesText.setX(stage.getScene().getWidth() - 80);
+            livesText.setY(20 + (i * 20));
+            livesTexts.add(livesText);
+            root.getChildren().add(livesText);
+        }
     }
 
     public static void main(String[] args) {
         launch(args);
     }
 }
-

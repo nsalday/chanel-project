@@ -12,7 +12,7 @@ class Bullet {
 
     public Bullet(double startX, double startY) {
         bulletShape = new Circle(startX, startY, 5);
-        Image bulletImage = new Image(getClass().getResourceAsStream("/resources/images/bullet2.png"));
+        Image bulletImage = new Image(getClass().getResourceAsStream("/bullet2.png"));
         bulletShape.setFill(new ImagePattern(bulletImage));
     }
 

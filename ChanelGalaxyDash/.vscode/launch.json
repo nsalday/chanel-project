@@ -17,7 +17,7 @@
             "request": "launch",
             "mainClass": "App",
             "projectName": "ChanelGalaxyDash_9e50d01e",
-            "vmArgs": "--module-path D:\\Documents\\SDK\\javafx-sdk-22.0.1\\lib --add-modules javafx.fxml,javafx.controls"
+            "vmArgs": "--module-path \"C:/Java/javafx-sdk-22/lib\" --add-modules javafx.controls,javafx.fxml"
         },
         {
             "type": "java",

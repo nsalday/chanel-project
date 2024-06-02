@@ -21,10 +21,10 @@ public class PowerUp extends Rectangle {
     private void initVisuals() {
         switch (type) {
             case "speed":
-                setFillWithImage("/resources/images/speedup.png");
+                setFillWithImage("/speedup.png");
                 break;
             case "extraLife":
-                setFillWithImage("/resources/images/heart.png");
+                setFillWithImage("/heart.png");
                 break;
             default:
                 this.setFill(Color.GRAY);

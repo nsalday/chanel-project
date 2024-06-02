@@ -29,7 +29,7 @@ public class Multiplayer {
     private boolean isHost = false;
     private Stage primaryStage;
 
-    InputStream imageStream = getClass().getResourceAsStream("/resources/images/title-bg.png");
+    InputStream imageStream = getClass().getResourceAsStream("/title-bg.png");
     Image backgroundImage = new Image(imageStream);
     BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
 
@@ -48,20 +48,20 @@ public class Multiplayer {
         dropShadow.setColor(Color.rgb(173, 31, 44, 1));
 
         Text titleLabel = new Text("Multiplayer");
-        titleLabel.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Mario-Kart-DS.ttf"), 36));
+        titleLabel.setFont(Font.loadFont(getClass().getResourceAsStream("/Mario-Kart-DS.ttf"), 36));
         titleLabel.setFill(Color.RED);
         titleLabel.setEffect(dropShadow);
 
         Text hostText = createClickableText("Host Game", true, this::hostGame);
-        hostText.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
+        hostText.setFont(Font.loadFont(getClass().getResourceAsStream("/Minecraft.ttf"), 18));
         hostText.setFill(Color.LIGHTGRAY);
 
         Text joinText = createClickableText("Join Game", true, this::joinGame);
-        joinText.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
+        joinText.setFont(Font.loadFont(getClass().getResourceAsStream("/Minecraft.ttf"), 18));
         joinText.setFill(Color.LIGHTGRAY);
 
         Text exitText = createClickableText("Exit", true, this::exitGame);
-        exitText.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
+        exitText.setFont(Font.loadFont(getClass().getResourceAsStream("/Minecraft.ttf"), 18));
         exitText.setFill(Color.WHITE);
 
         layout.getChildren().addAll(titleLabel, hostText, joinText, exitText);
@@ -73,7 +73,7 @@ public class Multiplayer {
 
     private Text createClickableText(String text, boolean clickable, Runnable onClick) {
         Text clickableText = new Text(text);
-        clickableText.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
+        clickableText.setFont(Font.loadFont(getClass().getResourceAsStream("/Minecraft.ttf"), 18));
         clickableText.setFill(Color.LIGHTGRAY);
 
         if (clickable) {
@@ -138,7 +138,7 @@ public class Multiplayer {
         lobbyLayout.setPadding(new Insets(10));
 
         Text lobbyTitle = new Text("Lobby");
-        lobbyTitle.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Mario-Kart-DS.ttf"), 36));
+        lobbyTitle.setFont(Font.loadFont(getClass().getResourceAsStream("/Mario-Kart-DS.ttf"), 36));
         lobbyTitle.setFill(Color.RED);
         lobbyTitle.setEffect(dropShadow);
 
@@ -152,7 +152,7 @@ public class Multiplayer {
                         "-fx-border-color: white;" +
                         "-fx-border-width: 2px;"
         );
-        chatArea.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 12));
+        chatArea.setFont(Font.loadFont(getClass().getResourceAsStream("/Minecraft.ttf"), 12));
 
         chatInputField = new TextField();
         chatInputField.setPromptText("Type a message...");
@@ -163,7 +163,7 @@ public class Multiplayer {
                         "-fx-text-fill: white"
         );
 
-        chatInputField.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 12));
+        chatInputField.setFont(Font.loadFont(getClass().getResourceAsStream("/Minecraft.ttf"), 12));
 
         chatInputField.setOnAction(event -> {
             String text = chatInputField.getText();
@@ -197,7 +197,7 @@ public class Multiplayer {
                 sendMessage("START_GAME");
                 startGame();
             });
-            startButton.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
+            startButton.setFont(Font.loadFont(getClass().getResourceAsStream("/Minecraft.ttf"), 18));
             startButton.setFill(Color.LIGHTGRAY);
             mainLayout.getChildren().add(startButton);
         }
@@ -207,7 +207,7 @@ public class Multiplayer {
 
             // Display waiting text
             Text waitingText = new Text("Waiting for host to start the game...");
-            waitingText.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
+            waitingText.setFont(Font.loadFont(getClass().getResourceAsStream("/Minecraft.ttf"), 18));
             waitingText.setFill(Color.LIGHTGRAY);
             mainLayout.getChildren().add(waitingText);
         }

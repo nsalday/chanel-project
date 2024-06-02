@@ -1,5 +1,3 @@
-// package com.example.chanel;
-
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.scene.image.ImageView;
@@ -9,6 +7,9 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Circle;
 import javafx.scene.paint.Color;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -32,15 +33,37 @@ public class PlayerController {
     private double speed = 2.0;
     private Scene gameScene;
 
-    public PlayerController(ImageView playerImageView, Pane gamePane, Scene scene, int health, Game game, Menu menu) {
+    // Networking fields
+    private Socket socket;
+    private ObjectOutputStream out;
+    private GameState gameState;
+    private int playerIndex;
+
+    public PlayerController(ImageView playerImageView, Pane gamePane, Scene scene, int health, Game game, Menu menu, Socket socket, GameState gameState, int playerIndex) {
         this.playerImageView = playerImageView;
         this.gamePane = gamePane;
         this.health = health;
         this.game = game;
         this.menu = menu;
         this.gameScene = scene;
+        this.gameState = gameState;
+        this.playerIndex = playerIndex;
+
+        setSocket(socket); // Initialize the socket if available
+
         setUpKeyHandling(scene);
         startAnimationTimer();
+    }
+
+    public void setSocket(Socket socket) {
+        this.socket = socket;
+        if (socket != null) {
+            try {
+                this.out = new ObjectOutputStream(socket.getOutputStream());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public long getHealth() {
@@ -190,14 +213,40 @@ public class PlayerController {
         // Check boundaries and adjust if necessary
         double playerMaxX = gamePane.getWidth() - playerImageView.getBoundsInParent().getWidth();
         double playerMaxY = gamePane.getHeight() - playerImageView.getBoundsInParent().getHeight();
-        if (playerNewX < 0) playerNewX = 0;
-        if (playerNewX > playerMaxX) playerNewX = playerMaxX;
-        if (playerNewY < 0) playerNewY = 0;
-        if (playerNewY > playerMaxY) playerNewY = playerMaxY;
+        if (playerNewX < 0)
+            playerNewX = 0;
+        if (playerNewX > playerMaxX)
+            playerNewX = playerMaxX;
+        if (playerNewY < 0)
+            playerNewY = 0;
+        if (playerNewY > playerMaxY)
+            playerNewY = playerMaxY;
 
         // Set the new position
         playerImageView.setX(playerNewX);
         playerImageView.setY(playerNewY);
+
+        // Update game state and send to server
+        updateGameState();
+    }
+
+    private void updateGameState() {
+        PlayerData playerData = new PlayerData(playerImageView.getX(), playerImageView.getY(), health);
+        gameState.getPlayers().set(playerIndex, playerData);
+        sendGameState(gameState);
+    }
+
+    private void sendGameState(GameState gameState) {
+        if (out != null) {
+            try {
+                out.writeObject(gameState);
+                out.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.err.println("ObjectOutputStream is null, cannot send game state");
+        }
     }
 
     public void handleCollision() {
@@ -209,7 +258,7 @@ public class PlayerController {
                     this.health--; // Decrease health by one
                     System.out.println(this.health);
                     if (this.health == 0) {
-                        Platform.runLater(() -> game.gameOver());
+                        Platform.runLater(() -> game.gameOver(this));
                         upPressed = false;
                         downPressed = false;
                         leftPressed = false;
@@ -245,7 +294,7 @@ public class PlayerController {
                 speed = normalSpeed; // Reset speed to normal after 5 seconds
                 shot_delay = show_delay_normal;
             }
-        }, 3000); // 5000 milliseconds = 5 seconds
+        }, 3000); // 3000 milliseconds = 3 seconds
     }
 
     public Scene getGameScene() {

@@ -24,7 +24,7 @@ public class TitleScreen {
         VBox layout = new VBox(20); // Adding spacing of 20 between nodes
         layout.setAlignment(Pos.CENTER);
 
-        InputStream imageStream = getClass().getResourceAsStream("resources/images/title-bg.png");
+        InputStream imageStream = getClass().getResourceAsStream("/title-bg.png");
         Image backgroundImage = new Image(imageStream);
         BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
         layout.setBackground(new Background(background));
@@ -36,7 +36,7 @@ public class TitleScreen {
         dropShadow.setColor(Color.rgb(173, 31, 44, 1));
 
         Text titleLabel = new Text("Galaxy Dash\n");
-        titleLabel.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Mario-Kart-DS.ttf"), 48));
+        titleLabel.setFont(Font.loadFont(getClass().getResourceAsStream("/Mario-Kart-DS.ttf"), 48));
         titleLabel.setFill(Color.web("#F76335"));
         titleLabel.setEffect(dropShadow);
 
@@ -50,15 +50,15 @@ public class TitleScreen {
         fadeTransition.play();
 
         Text startText = createClickableText("Start Game", true, () -> startGame());
-        startText.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
+        startText.setFont(Font.loadFont(getClass().getResourceAsStream("/Minecraft.ttf"), 18));
         startText.setFill(Color.LIGHTGRAY);
 
         Text exitText = createClickableText("Exit", true, () -> exitGame());
-        exitText.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
+        exitText.setFont(Font.loadFont(getClass().getResourceAsStream("/Minecraft.ttf"), 18));
         exitText.setFill(Color.WHITE);
 
         Text multiplayerText = createClickableText("Multiplayer", true, () -> startMultiplayer());
-        multiplayerText.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
+        multiplayerText.setFont(Font.loadFont(getClass().getResourceAsStream("/Minecraft.ttf"), 18));
         multiplayerText.setFill(Color.WHITE);
 
         layout.getChildren().addAll(titleLabel, startText, exitText, multiplayerText);
@@ -70,7 +70,7 @@ public class TitleScreen {
 
     private Text createClickableText(String text, boolean clickable, Runnable onClick) {
         Text clickableText = new Text(text);
-        clickableText.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
+        clickableText.setFont(Font.loadFont(getClass().getResourceAsStream("/Minecraft.ttf"), 18));
         clickableText.setFill(Color.LIGHTGRAY);
 
         if (clickable) {

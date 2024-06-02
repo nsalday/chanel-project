@@ -24,14 +24,14 @@ public class Menu {
         VBox layout = new VBox(20);
         layout.setAlignment(Pos.CENTER);
 
-        InputStream imageStream = getClass().getResourceAsStream("/resources/images/title-bg.png");
+        InputStream imageStream = getClass().getResourceAsStream("/title-bg.png");
         Image backgroundImage = new Image(imageStream);
         BackgroundImage background = new BackgroundImage(backgroundImage, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
         layout.setBackground(new Background(background));
 
 
         Text titleLabel = new Text("Are you sure you want to exit?\n");
-        titleLabel.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 20));
+        titleLabel.setFont(Font.loadFont(getClass().getResourceAsStream("/Minecraft.ttf"), 20));
         titleLabel.setFill(Color.WHITE);
 
         Text exitButton = createClickableText("Exit", true, () -> exitGame());
@@ -54,7 +54,7 @@ public class Menu {
 
     private Text createClickableText(String text, boolean clickable, Runnable onClick) {
         Text clickableText = new Text(text);
-        clickableText.setFont(Font.loadFont(getClass().getResourceAsStream("/resources/fonts/Minecraft.ttf"), 18));
+        clickableText.setFont(Font.loadFont(getClass().getResourceAsStream("/Minecraft.ttf"), 18));
         clickableText.setFill(Color.LIGHTGRAY);
 
         if (clickable) {

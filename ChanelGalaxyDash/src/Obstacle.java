@@ -16,9 +16,9 @@ public class Obstacle extends Rectangle {
     private double speed;
     private static final Random random = new Random();
     private static final String[] obstacleImagePaths = {
-            "/resources/images/obstacle1.png",
-            "/resources/images/obstacle2.png",
-            "/resources/images/obstacle3.png",
+            "/obstacle1.png",
+            "/obstacle2.png",
+            "/obstacle3.png",
     };
 
     public Obstacle(double x, double y, double width, double height, double speed) {
